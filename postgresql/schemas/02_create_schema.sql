@@ -8,14 +8,18 @@
 
 BEGIN;
 
+-- Check if the role 'oedypus' exists and has the necessary privileges.
+-- You may need to create the role or grant it the right permissions before executing this script.
+
 -- Creating the schema
 CREATE SCHEMA IF NOT EXISTS email_schema
     AUTHORIZATION oedypus;
 
--- Optionally, you can set the default search path for the user to include the new schema.
--- This ensures that the user will look in the correct schema when referencing tables without a prefix.
-ALTER ROLE oedypus SET search_path TO email_schema, public;
+-- Set the default search path for the 'oedypus' role.
+-- This line is optional and should be used if you want 'oedypus' to access this schema by default.
+ALTER ROLE oedypus SET search_path TO email_schema;
 
 COMMIT;
+
 
 -- The script ends here. The schema is created, and the role is set to use it by default.

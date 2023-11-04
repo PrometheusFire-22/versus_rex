@@ -1,8 +1,18 @@
+BEGIN;
+
 -- Use this script to create the necessary tables for storing emails and their attachments.
 -- It is designed to be modular and easily expandable for future needs.
 
--- Creating the 'emails' table to store email information.
-CREATE TABLE IF NOT EXISTS emails (
+-- Ensure that the email_schema exists and is used
+
+CREATE SCHEMA IF NOT EXISTS email_schema;
+SET search_path TO email_schema;
+
+-- Comment on the schema
+COMMENT ON SCHEMA email_schema IS 'Schema for storing all email-related data including emails, attachments, and mappings.';
+
+-- Creating the 'emails' table within the 'email_schema' to store email information.
+CREATE TABLE IF NOT EXISTS email_schema.emails (
   email_id SERIAL PRIMARY KEY,                -- A unique identifier for each email.
   subject TEXT,                               -- The subject of the email.
   sender VARCHAR(255),                        -- The email address of the sender.
@@ -17,84 +27,81 @@ CREATE TABLE IF NOT EXISTS emails (
   dkim_signature TEXT                         -- To store 'DKIM-Signature' header information.
 );
 
--- Index on commonly searched fields to improve query performance.
-CREATE INDEX IF NOT EXISTS idx_emails_sender ON emails(sender);
-CREATE INDEX IF NOT EXISTS idx_emails_recipient ON emails(recipient);
-CREATE INDEX IF NOT EXISTS idx_emails_sent_time ON emails(sent_time);
-CREATE INDEX IF NOT EXISTS idx_emails_sender ON emails(sender);
-CREATE INDEX IF NOT EXISTS idx_emails_recipient ON emails(recipient);
-CREATE INDEX IF NOT EXISTS idx_emails_sent_time ON emails(sent_time);
-CREATE INDEX IF NOT EXISTS idx_emails_ip_address ON emails(ip_address);
-CREATE INDEX IF NOT EXISTS idx_emails_x_originating_ip ON emails(x_originating_ip);
+-- Comment on the 'emails' table
+COMMENT ON TABLE email_schema.emails IS 'Table to store core email information.';
+
+-- Comment on columns in the 'emails' table
+COMMENT ON COLUMN email_schema.emails.email_id IS 'Unique identifier for each email.';
+COMMENT ON COLUMN email_schema.emails.subject IS 'Subject line of the email.';
+COMMENT ON COLUMN email_schema.emails.sender IS 'Email address of the sender.';
+COMMENT ON COLUMN email_schema.emails.recipient IS 'Email address of the recipient.';
+COMMENT ON COLUMN email_schema.emails.sent_time IS 'Timestamp when the email was sent.';
+COMMENT ON COLUMN email_schema.emails.body_text IS 'The body content of the email in text format.';
+COMMENT ON COLUMN email_schema.emails.ip_address IS 'IP address from which the email was sent.';
+COMMENT ON COLUMN email_schema.emails.x_originating_ip IS 'Additional originating IP address included in the email header.';
+COMMENT ON COLUMN email_schema.emails.received IS 'Header information containing the email routing details.';
+COMMENT ON COLUMN email_schema.emails.user_agent IS 'Information about the email client that was used to send the email.';
+COMMENT ON COLUMN email_schema.emails.authentication_results IS 'Results of the email authentication process.';
+COMMENT ON COLUMN email_schema.emails.dkim_signature IS 'DomainKeys Identified Mail signature.';
+
+-- Indexes on the 'emails' table to improve query performance.
+
+CREATE INDEX IF NOT EXISTS email_schema.idx_emails_sender ON email_schema.emails(sender);
+CREATE INDEX IF NOT EXISTS email_schema.idx_emails_recipient ON email_schema.emails(recipient);
+CREATE INDEX IF NOT EXISTS email_schema.idx_emails_sent_time ON email_schema.emails(sent_time);
+CREATE INDEX IF NOT EXISTS email_schema.idx_emails_ip_address ON email_schema.emails(ip_address);
+CREATE INDEX IF NOT EXISTS email_schema.idx_emails_x_originating_ip ON email_schema.emails(x_originating_ip);
+CREATE INDEX IF NOT EXISTS email_schema.idx_emails_received ON email_schema.emails(received);
+CREATE INDEX IF NOT EXISTS email_schema.idx_emails_user_agent ON email_schema.emails(user_agent);
+CREATE INDEX IF NOT EXISTS email_schema.idx_emails_authentication_results ON email_schema.emails(authentication_results);
+CREATE INDEX IF NOT EXISTS email_schema.idx_emails_dkim_signature ON email_schema.emails(dkim_signature);
 
 
--- Creating the 'attachments' table to store attachment information.
-CREATE TABLE IF NOT EXISTS attachments (
+-- Creating the 'attachments' table within the 'email_schema'.
+CREATE TABLE IF NOT EXISTS email_schema.attachments (
   attachment_id SERIAL PRIMARY KEY,           -- A unique identifier for each attachment.
-  email_id INT,                               -- The identifier of the email this attachment is associated with.
-  file_name TEXT,                             -- The file name of the attachment.
+  email_id INT NOT NULL,                      -- The identifier of the email this attachment is associated with.
+  file_name TEXT NOT NULL,                    -- The file name of the attachment.
   file_type TEXT,                             -- The MIME type of the attachment.
-  file_size INT,                              -- The size of the attachment file in bytes.
-  FOREIGN KEY (email_id) REFERENCES emails(email_id) -- A foreign key that references the 'emails' table.
+  file_size BIGINT,                           -- The size of the attachment file in bytes.
+  FOREIGN KEY (email_id) REFERENCES email_schema.emails(email_id) ON DELETE RESTRICT
 );
 
--- Index on the 'email_id' foreign key to speed up searches for all attachments of an email.
-CREATE INDEX IF NOT EXISTS idx_attachments_email_id ON attachments(email_id);
-CREATE INDEX IF NOT EXISTS idx_attachments_file_name ON attachments(file_name);
-CREATE INDEX IF NOT EXISTS idx_attachments_file_type ON attachments(file_type);
+-- Comment on the 'attachments' table
+COMMENT ON TABLE email_schema.attachments IS 'Table to store information about email attachments.';
 
--- Creating the 'email_attachment_mapping' table to allow a many-to-many relationship between emails and attachments.
-CREATE TABLE IF NOT EXISTS email_attachment_mapping (
-  email_id INT,                               -- The identifier of the email.
-  attachment_id INT,                          -- The identifier of the attachment.
-  PRIMARY KEY (email_id, attachment_id),      -- Composite primary key to ensure uniqueness.
-  FOREIGN KEY (email_id) REFERENCES emails(email_id), -- Foreign key to reference 'emails' table.
-  FOREIGN KEY (attachment_id) REFERENCES attachments(attachment_id) -- Foreign key to reference 'attachments' table.
+-- Comment on columns in the 'attachments' table
+COMMENT ON COLUMN email_schema.attachments.attachment_id IS 'Unique identifier for each attachment.';
+COMMENT ON COLUMN email_schema.attachments.email_id IS 'Foreign key to the email with which this attachment is associated.';
+COMMENT ON COLUMN email_schema.attachments.file_name IS 'Name of the file attached.';
+COMMENT ON COLUMN email_schema.attachments.file_type IS 'MIME type of the attachment.';
+COMMENT ON COLUMN email_schema.attachments.file_size IS 'Size of the attachment file in bytes.';
+
+-- Indexes on the 'attachments' table to improve query performance.
+CREATE INDEX IF NOT EXISTS email_schema.idx_attachments_email_id ON email_schema.attachments(email_id);
+CREATE INDEX IF NOT EXISTS email_schema.idx_attachments_file_name ON email_schema.attachments(file_name);
+CREATE INDEX IF NOT EXISTS email_schema.idx_attachments_file_type ON email_schema.attachments(file_type);
+CREATE INDEX IF NOT EXISTS email_schema.idx_attachments_file_size ON email_schema.attachments(file_size);
+
+-- Assuming the 'email_attachment_mapping' table is required as the comment suggests, 
+-- the table creation script should be something like this:
+CREATE TABLE IF NOT EXISTS email_schema.email_attachment_mapping (
+  email_id INT,
+  attachment_id INT,
+  PRIMARY KEY (email_id, attachment_id),
+  FOREIGN KEY (email_id) REFERENCES email_schema.emails(email_id) ON DELETE RESTRICT,
+  FOREIGN KEY (attachment_id) REFERENCES email_schema.attachments(attachment_id) ON DELETE RESTRICT
 );
 
--- Index to improve the performance of lookups and joins using the 'email_id' field.
-CREATE INDEX IF NOT EXISTS idx_email_attachment_mapping_email_id ON email_attachment_mapping(email_id);
+-- Comment on the 'email_attachment_mapping' table
+COMMENT ON TABLE email_schema.email_attachment_mapping IS 'Table to map emails to attachments, allowing for a many-to-many relationship.';
 
--- Index to improve the performance of lookups and joins using the 'attachment_id' field.
-CREATE INDEX IF NOT EXISTS idx_email_attachment_mapping_attachment_id ON email_attachment_mapping(attachment_id)
+-- Comment on columns in the 'email_attachment_mapping' table
+COMMENT ON COLUMN email_schema.email_attachment_mapping.email_id IS 'Foreign key to the associated email.';
+COMMENT ON COLUMN email_schema.email_attachment_mapping.attachment_id IS 'Foreign key to the associated attachment.';
 
--- Adding comments to the 'emails' table
-COMMENT ON TABLE emails IS 'Stores information about each email message.';
+-- Indexes for the 'email_attachment_mapping' table to improve query performance.
+CREATE INDEX IF NOT EXISTS email_schema.idx_email_attachment_mapping_email_id ON email_schema.email_attachment_mapping(email_id);
+CREATE INDEX IF NOT EXISTS email_schema.idx_email_attachment_mapping_attachment_id ON email_schema.email_attachment_mapping(attachment_id);
 
--- Adding comments to the columns of the 'emails' table
-COMMENT ON COLUMN emails.email_id IS 'Unique identifier for each email.';
-COMMENT ON COLUMN emails.subject IS 'Subject line of the email.';
-COMMENT ON COLUMN emails.sender IS 'Email address of the sender.';
-COMMENT ON COLUMN emails.recipient IS 'Email address of the intended recipient.';
-COMMENT ON COLUMN emails.sent_time IS 'Date and time the email was sent.';
-COMMENT ON COLUMN emails.body_text IS 'The plain text body of the email message.';
-COMMENT ON COLUMN emails.ip_address IS 'IP address from where the email was sent.';
-COMMENT ON COLUMN emails.x_originating_ip IS 'Originating IP address included in the email header.';
-COMMENT ON COLUMN emails.received IS 'Full "Received" header chain from the email.';
-COMMENT ON COLUMN emails.user_agent IS 'The "User-Agent" header, indicating the email client used.';
-COMMENT ON COLUMN emails.authentication_results IS 'Authentication results from the email header.';
-COMMENT ON COLUMN emails.dkim_signature IS 'DKIM signature header from the email, if present.';
-
--- Adding comments to the 'attachments' table
-COMMENT ON TABLE attachments IS 'Stores information about each file attached to emails.';
-
--- Adding comments to the columns of the 'attachments' table
-COMMENT ON COLUMN attachments.attachment_id IS 'Unique identifier for each attachment.';
-COMMENT ON COLUMN attachments.email_id IS 'Identifier of the email to which this attachment is linked.';
-COMMENT ON COLUMN attachments.file_name IS 'The original file name of the attachment.';
-COMMENT ON COLUMN attachments.file_type IS 'The MIME type of the attachment.';
-COMMENT ON COLUMN attachments.file_size IS 'The size of the attachment file in bytes.';
-
--- Adding comments to the 'email_attachment_mapping' table
-COMMENT ON TABLE email_attachment_mapping IS 'Maps emails to their attachments for emails with multiple attachments.';
-
--- Adding comments to the columns of the 'email_attachment_mapping' table
-COMMENT ON COLUMN email_attachment_mapping.email_id IS 'Identifier of the email associated with the attachment.';
-COMMENT ON COLUMN email_attachment_mapping.attachment_id IS 'Identifier of the attachment associated with the email.';
-
--- It's good practice to add comments to your database schema as it helps future developers,
--- or anyone interacting with the database, understand the schema more quickly and thoroughly.
--- These comments should provide clear, concise information about the purpose and use of each table and column.
-
-
--- The script ends here. All tables are created and ready to be used.
+COMMIT; -- This will commit the transaction if all commands execute successfully
