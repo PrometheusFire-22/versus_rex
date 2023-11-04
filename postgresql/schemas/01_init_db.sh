@@ -1,20 +1,20 @@
 #!/bin/bash
 
 # This script initializes the PostgreSQL environment for your project.
-# Replace 'mydatabase' with your desired database name,
-# 'myusername' with your desired username, and 'mypassword' with your desired password.
+# Replace 'versus_rex' with your desired database name,
+# 'oedypus' with your desired username, and 'Zarathustra22!' with your desired password.
 
 # Exit immediately if a command exits with a non-zero status.
 set -e
 
-# Replace 'mydatabase' with the name of the database you want to create.
-DATABASE_NAME="mydatabase"
+# Replace 'versus_rex' with the name of the database you want to create.
+DATABASE_NAME="versus_rex"
 
 # Replace 'myusername' with the username you want to create.
-USERNAME="myusername"
+USERNAME="oedypus"
 
 # Replace 'mypassword' with the password for the new user.
-PASSWORD="mypassword"
+PASSWORD="Zarathustra22!"
 
 # Create a new PostgreSQL role.
 echo "Creating role..."
