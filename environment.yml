@@ -1,0 +1,38 @@
+name: versus_regus
+channels:
+  - defaults
+  - conda-forge
+dependencies:
+  - python=3.9  # Specify the version of Python you need
+  - numpy
+  - pandas
+  - matplotlib
+  - seaborn
+  - plotly
+  - scipy
+  - scikit-learn
+  - jupyter
+  - notebook
+  - ipykernel
+  - pip
+  - pip:
+    - fastapi
+    - uvicorn[standard]
+    - pdfplumber
+    - ocrmypdf
+    - pypdf2  # Added PyPDF2
+    - psycopg2
+    - SQLAlchemy
+    - python-dotenv  # To manage environment variables
+    - pytest  # For running tests
+    - black  # For code formatting
+    - flake8  # For code style checking
+    - mypy  # For static type checking
+    - pylint  # For comprehensive code quality checks
+    - autopep8  # For automatically fixing code style
+    - gunicorn  # For serving FastAPI in production
+    - dash
+    - streamlit
+    - dash-bootstrap-components
+
+# Other dependencies can be added as needed
