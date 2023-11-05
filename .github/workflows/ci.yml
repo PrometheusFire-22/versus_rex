@@ -1,6 +1,13 @@
 name: CI
 
-on: [push]
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
 
 jobs:
   test:
@@ -10,12 +17,11 @@ jobs:
       postgres:
         image: postgres:latest
         env:
-          POSTGRES_DB: testdb
-          POSTGRES_USER: user
-          POSTGRES_PASSWORD: password
+          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
         ports:
           - 5432:5432
-        # Set health checks to wait until postgres has started
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -24,28 +30,42 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
         python-version: '3.8'
+
+    - name: Cache Python dependencies
+      uses: actions/cache@v2
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+
     - name: Install dependencies
       run: |
         pip install -r requirements.txt
+
     - name: Run migrations
       env:
-        POSTGRES_USER: user
-        POSTGRES_PASSWORD: password
+        POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+        POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
         POSTGRES_HOST: localhost
         POSTGRES_PORT: 5432
-        POSTGRES_DB: testdb
+        POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
       run: |
-        # Run your migration scripts here
+        psql -h $POSTGRES_HOST -U $POSTGRES_USER -d $POSTGRES_DB -a -f path/to/your/migration_script.sql
+
     - name: Run tests
       env:
-        POSTGRES_USER: user
-        POSTGRES_PASSWORD: password
+        POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+        POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
         POSTGRES_HOST: localhost
         POSTGRES_PORT: 5432
-        POSTGRES_DB: testdb
+        POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
       run: |
-        # Run your test scripts here
+        # Run your test scripts here, for example:
+        pytest
+
