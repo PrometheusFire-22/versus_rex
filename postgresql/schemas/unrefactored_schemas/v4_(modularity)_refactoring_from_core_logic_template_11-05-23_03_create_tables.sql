@@ -46,9 +46,7 @@ CREATE TABLE IF NOT EXISTS email_schema.audit_log (
   new_value JSONB
 );
 
--- Continue with table creation and other operations...
-
--- Step 3: Create the 'emails' table and associated indexes within the 'email_schema'.
+-- Step 5: Create the 'emails' table and associated indexes within the 'email_schema'.
 DO $$
 BEGIN
     -- Create the 'emails' table with proper validation and types
