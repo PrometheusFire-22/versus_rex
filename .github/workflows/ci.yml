@@ -31,22 +31,28 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - name: Set up Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: '3.8'
+  - name: Set up Conda
+    uses: conda-incubator/setup-miniconda@v2
+    with:
+      activate-environment: myenv
+      environment-file: environment.yml
+      python-version: 3.8
+      auto-activate-base: false
 
-    - name: Cache Python dependencies
+
+    - name: Cache Conda dependencies
       uses: actions/cache@v2
       with:
-        path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        path: ~/conda_pkgs_dir
+        key: ${{ runner.os }}-conda-${{ hashFiles('**/environment.yml') }}
         restore-keys: |
-          ${{ runner.os }}-pip-
+          ${{ runner.os }}-conda-
 
-    - name: Install dependencies
+    - name: Install Conda dependencies
       run: |
-        pip install -r requirements.txt
+        conda env create -f environment.yml
+        source activate my-env
+
 
     - name: Run migrations
       env:
@@ -56,7 +62,7 @@ jobs:
         POSTGRES_PORT: 5432
         POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
       run: |
-        psql -h $POSTGRES_HOST -U $POSTGRES_USER -d $POSTGRES_DB -a -f path/to/your/migration_script.sql
+        psql -h $POSTGRES_HOST -U $POSTGRES_USER -d $POSTGRES_DB -a -f /home/prometheus/versus_rex/postgresql/migrations/v1_11-05-23_migrations_script.py
 
     - name: Run tests
       env:

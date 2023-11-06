@@ -13,4 +13,4 @@ def test_db_connection(db_conn):
     cursor = db_conn.cursor()
     cursor.execute("SELECT 1;")
     result = cursor.fetchone()
-    assert result == (1,)
+    assert result == (1,) 
